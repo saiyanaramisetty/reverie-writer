@@ -103,7 +103,7 @@
   <button id="downloadBtn" class="icon-btn" title="Download & Pause">💾</button>
 </div>
 
-<div id="sessionTitle" contenteditable="true" data-placeholder="Enter session title..."></div>
+<div id="sessionTitle" contenteditable="true" data-placeholder="What are you writing about?"></div>
 <textarea id="editor" spellcheck="false" placeholder="Start writing..."></textarea>
 
 <script>
@@ -119,6 +119,18 @@ const downloadBtn = document.getElementById('downloadBtn');
 let startTime = Date.now();
 let elapsedBeforePause = 0;
 let isPaused = false;
+
+// Restore session from localStorage
+window.addEventListener('load', () => {
+  const savedEditor = localStorage.getItem('editorContent');
+  const savedTitle = localStorage.getItem('sessionTitle');
+  
+  if (savedEditor) editor.value = savedEditor;
+  if (savedTitle) sessionTitle.textContent = savedTitle;
+
+  editor.focus();
+  updateWordCount();
+});
 
 // Timer
 let timerInterval = setInterval(updateTimer, 1000);
@@ -142,10 +154,13 @@ function updateTimer() {
 }
 
 // Word count
+function updateWordCount() {
+  let words = editor.value.trim().split(/\s+/).filter(Boolean);
+  wordCountEl.textContent = "Words: " + words.length;
+}
 editor.addEventListener('input', () => {
   if (!isPaused) {
-    let words = editor.value.trim().split(/\s+/).filter(Boolean);
-    wordCountEl.textContent = "Words: " + words.length;
+    updateWordCount();
     editor.scrollTop = editor.scrollHeight;
   }
 });
@@ -226,12 +241,9 @@ resetBtn.addEventListener('click', () => {
   elapsedBeforePause = 0;
   isPaused = false;
   pauseBtn.textContent = '⏸️';
-  localStorage.clear();
+  localStorage.clear(); // clear on reset only
   editor.focus();
 });
-
-// Autofocus
-window.addEventListener('load', () => editor.focus());
 
 // Auto-save to localStorage every 5 seconds
 setInterval(() => {
