@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reverie Writer</title>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  body {
+    margin: 0;
+    background-color: #1e1e1e;
+    font-family: monospace;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+  }
+
+  #sessionTitle {
+    width: 500px;
+    font-size: 1.5rem;
+    font-weight: 500;
+    margin-bottom: 1rem;
+    padding: 0.5rem 1rem;
+    color: #999999;
+    background: transparent;
+    outline: none;
+    border-radius: 8px;
+    font-family: 'Spectral', serif;
+  }
+
+  #sessionTitle:empty:before {
+    content: attr(data-placeholder);
+    color: #999999;
+    pointer-events: none;
+  }
+
+  #editor {
+    background: linear-gradient(to bottom, #fafafa 0%, #f5f5f5 100%);
+    color: #3a3a3a;
+    width: 70%;
+    max-width: 600px;
+    height: 6em;
+    border: 1px solid #e0e0e0;
+    padding: 2rem;
+    resize: none;
+    font-size: 1.2rem;
+    line-height: 2.4em;
+    outline: none;
+    overflow: hidden;
+    caret-color: #ffbb66;
+    border-radius: 12px;
+    font-family: 'Spectral', serif;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3), inset 0 5px 15px rgba(0,0,0,0.05);
+    letter-spacing: 0.5px;
+    word-spacing: 2px;
+    font-feature-settings: "liga" 1, "dlig" 1;
+    font-variant-ligatures: common-ligatures discretionary-ligatures;
+  }
+
+  #controls {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    opacity: 0.2;
+    transition: opacity 0.3s ease;
+    font-family: 'Spectral', serif;
+  }
+
+  #controls:hover { opacity: 1; }
+
+  .icon-btn {
+    background: none;
+    border: none;
+    color: #eee;
+    font-size: 1.5rem;
+    cursor: pointer;
+  }
+
+  .icon-btn:hover { color: #0f9; }
+
+  #wordCount, #timer {
+    font-size: 0.85rem;
+    color: #aaa;
+    white-space: nowrap;
+    font-family: 'Spectral', serif;
+  }
+</style>
+</head>
+<body>
+
+<div id="controls">
+  <span id="wordCount">Words: 0</span>
+  <span id="timer">Time: 0s</span>
+  <button id="fullscreenBtn" class="icon-btn" title="Toggle Fullscreen">⛶</button>
+  <button id="pauseBtn" class="icon-btn" title="Pause/Resume Session">⏸️</button>
+  <button id="resetBtn" class="icon-btn" title="Reset Session">🔄</button>
+  <button id="downloadBtn" class="icon-btn" title="Download & Pause">💾</button>
+</div>
+
+<div id="sessionTitle" contenteditable="true" data-placeholder="Enter session title..."></div>
+<textarea id="editor" spellcheck="false" placeholder="Start writing..."></textarea>
+
+<script>
+const editor = document.getElementById('editor');
+const sessionTitle = document.getElementById('sessionTitle');
+const wordCountEl = document.getElementById('wordCount');
+const timerEl = document.getElementById('timer');
+const fullscreenBtn = document.getElementById('fullscreenBtn');
+const pauseBtn = document.getElementById('pauseBtn');
+const resetBtn = document.getElementById('resetBtn');
+const downloadBtn = document.getElementById('downloadBtn');
+
+let startTime = Date.now();
+let elapsedBeforePause = 0;
+let isPaused = false;
+
+// Timer
+let timerInterval = setInterval(updateTimer, 1000);
+function updateTimer() {
+  if (!isPaused) {
+    const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000) + elapsedBeforePause;
+    let display = "";
+    if (elapsedSeconds < 60) display = `${elapsedSeconds}s`;
+    else if (elapsedSeconds < 3600) {
+      const mins = Math.floor(elapsedSeconds / 60);
+      const secs = elapsedSeconds % 60;
+      display = `${mins}m ${secs}s`;
+    } else {
+      const hrs = Math.floor(elapsedSeconds / 3600);
+      const mins = Math.floor((elapsedSeconds % 3600) / 60);
+      const secs = elapsedSeconds % 60;
+      display = `${hrs}h ${mins}m ${secs}s`;
+    }
+    timerEl.textContent = "Time: " + display;
+  }
+}
+
+// Word count
+editor.addEventListener('input', () => {
+  if (!isPaused) {
+    let words = editor.value.trim().split(/\s+/).filter(Boolean);
+    wordCountEl.textContent = "Words: " + words.length;
+    editor.scrollTop = editor.scrollHeight;
+  }
+});
+
+// Fullscreen toggle
+fullscreenBtn.addEventListener('click', () => {
+  if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+  else document.exitFullscreen();
+});
+
+// Pause/Resume
+pauseBtn.addEventListener('click', () => {
+  if (!isPaused) {
+    elapsedBeforePause += Math.floor((Date.now() - startTime) / 1000);
+    editor.readOnly = true;
+    sessionTitle.contentEditable = "false";
+    pauseBtn.textContent = '▶️';
+    isPaused = true;
+  } else {
+    startTime = Date.now();
+    editor.readOnly = false;
+    sessionTitle.contentEditable = "true";
+    pauseBtn.textContent = '⏸️';
+    isPaused = false;
+  }
+});
+
+// Download + Pause
+downloadBtn.addEventListener('click', () => {
+  let text = editor.value;
+  let titleText = sessionTitle.textContent.trim();
+  let totalWords = text.trim().split(/\s+/).filter(Boolean).length;
+  const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000) + elapsedBeforePause;
+
+  let timerDisplay = "";
+  if (elapsedSeconds < 60) timerDisplay = `${elapsedSeconds}s`;
+  else if (elapsedSeconds < 3600) {
+    const mins = Math.floor(elapsedSeconds / 60);
+    const secs = elapsedSeconds % 60;
+    timerDisplay = `${mins}m ${secs}s`;
+  } else {
+    const hrs = Math.floor(elapsedSeconds / 3600);
+    const mins = Math.floor((elapsedSeconds % 3600) / 60);
+    const secs = elapsedSeconds % 60;
+    timerDisplay = `${hrs}h ${mins}m ${secs}s`;
+  }
+
+  let header = `Title: ${titleText}\nWords: ${totalWords}\nTime: ${timerDisplay}\n\n`;
+  let fullText = header + text;
+
+  const now = new Date();
+  const filename = `writing_${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}-${String(now.getMinutes()).padStart(2,'0')}-${String(now.getSeconds()).padStart(2,'0')}.txt`;
+
+  let blob = new Blob([fullText], {type: "text/plain"});
+  let link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  link.click();
+
+  if (!isPaused) {
+    elapsedBeforePause += Math.floor((Date.now() - startTime) / 1000);
+    editor.readOnly = true;
+    sessionTitle.contentEditable = "false";
+    isPaused = true;
+    pauseBtn.textContent = '▶️';
+  }
+});
+
+// Reset
+resetBtn.addEventListener('click', () => {
+  editor.value = "";
+  sessionTitle.textContent = "";
+  editor.readOnly = false;
+  sessionTitle.contentEditable = "true";
+  wordCountEl.textContent = "Words: 0";
+  timerEl.textContent = "Time: 0s";
+  startTime = Date.now();
+  elapsedBeforePause = 0;
+  isPaused = false;
+  pauseBtn.textContent = '⏸️';
+  localStorage.clear();
+  editor.focus();
+});
+
+// Autofocus
+window.addEventListener('load', () => editor.focus());
+
+// Auto-save to localStorage every 5 seconds
+setInterval(() => {
+  if (!isPaused) {
+    localStorage.setItem('editorContent', editor.value);
+    localStorage.setItem('sessionTitle', sessionTitle.textContent);
+  }
+}, 5000);
+
+// Clear session on reload
+window.addEventListener('beforeunload', () => {
+  localStorage.clear();
+});
+</script>
+
+</body>
+</html>
