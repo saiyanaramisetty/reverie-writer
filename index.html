@@ -240,11 +240,6 @@ setInterval(() => {
     localStorage.setItem('sessionTitle', sessionTitle.textContent);
   }
 }, 5000);
-
-// Clear session on reload
-window.addEventListener('beforeunload', () => {
-  localStorage.clear();
-});
 </script>
 
 </body>
