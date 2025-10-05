@@ -106,7 +106,7 @@
 <body data-theme="dark">
 
 <div id="controls">
-  <div class="small" id="wordCount">Words: 0</div>
+  <div class="small" id="wordCount">Words: 0 | Chars: 0 (with spaces: 0)</div>
   <div class="small" id="timer">Time: 0s</div>
 
   <button id="fullscreenBtn" class="icon-btn" title="Toggle Fullscreen">⛶</button>
@@ -191,12 +191,18 @@ function applyTheme(name){
   saveSettings();
 }
 
-/* ===== Timer & Word Count ===== */
-function updateWordCount(){
-  const words=editor.value.trim().split(/\s+/).filter(Boolean).length;
-  wordCountEl.textContent='Words: '+words;
-  return words;
+/* ===== Stats ===== */
+function updateStats(){
+  const text = editor.value;
+  const words = text.trim().split(/\s+/).filter(Boolean).length;
+  const charsWithSpaces = text.length;
+  const charsNoSpaces = text.replace(/\s/g,'').length;
+
+  wordCountEl.textContent = `Words: ${words} | Chars: ${charsNoSpaces} (with spaces: ${charsWithSpaces})`;
+  return { words, charsWithSpaces, charsNoSpaces };
 }
+
+/* ===== Timer ===== */
 function updateTimerDisplay(){
   let s=elapsedBefore;
   let display='';
@@ -212,7 +218,7 @@ function startTimer(){
       const now=Date.now();
       elapsedBefore += Math.floor((now-startTime)/1000);
       startTime=now;
-      updateWordCount();
+      updateStats();
       updateTimerDisplay();
     }
   },1000);
@@ -221,12 +227,12 @@ function startTimer(){
 /* ===== Pause / Resume ===== */
 function applyPauseState(paused){
   if(!paused && isPaused){
-    startTime = Date.now(); // resume from pause
+    startTime=Date.now(); // resume from where left off
   }
-  isPaused = paused;
-  editor.readOnly = isPaused;
-  sessionTitle.contentEditable = !isPaused;
-  pauseBtn.textContent = isPaused ? '▶️' : '⏸️';
+  isPaused=paused;
+  editor.readOnly=isPaused;
+  sessionTitle.contentEditable=!isPaused;
+  pauseBtn.textContent=isPaused?'▶️':'⏸️';
 }
 pauseBtn.addEventListener('click', ()=> applyPauseState(!isPaused));
 
@@ -235,7 +241,7 @@ resetBtnTop.addEventListener('click',()=>{
   editor.value=''; sessionTitle.textContent='';
   elapsedBefore=0; startTime=Date.now();
   applyPauseState(false);
-  updateWordCount(); updateTimerDisplay();
+  updateStats(); updateTimerDisplay();
   localStorage.removeItem(LS_SESSION);
 });
 
@@ -249,14 +255,21 @@ fullscreenBtn.addEventListener('click',()=>{
 downloadBtn.addEventListener('click',()=>{
   const text=editor.value;
   const title=sessionTitle.textContent.trim();
-  const words=updateWordCount();
-  const elapsed=elapsedBefore;
+  const stats = updateStats();
+  const elapsed = elapsedBefore;
+
   let display='';
   if(elapsed<60) display=`${elapsed}s`;
   else if(elapsed<3600){ const m=Math.floor(elapsed/60); const sec=elapsed%60; display=`${m}m ${sec}s`; }
-  else { const h=Math.floor(elapsed/3600); const m=Math.floor((elapsed%3600)/60); const sec=s%60; display=`${h}h ${m}m ${sec}s`; }
+  else { const h=Math.floor(elapsed/3600); const m=Math.floor((elapsed%3600)/60); const sec=elapsed%60; display=`${h}h ${m}m ${sec}s`; }
 
-  const header=`Title: ${title||'[No Title]'}\nWords: ${words}\nTime: ${display}\n\n`;
+  const header=`Title: ${title||'[No Title]'}
+Words: ${stats.words}
+Characters (no spaces): ${stats.charsNoSpaces}
+Characters (with spaces): ${stats.charsWithSpaces}
+Time: ${display}
+
+`;
   const blob=new Blob([header+text],{type:'text/plain'});
   const link=document.createElement('a');
   link.href=URL.createObjectURL(blob);
@@ -287,11 +300,14 @@ resetThemeFontBtn.addEventListener('click',()=>{
 
 /* ===== Local Storage Functions ===== */
 function saveSession(){
+  const stats = updateStats();
   const sessionData={
-    title:sessionTitle.textContent,
-    content:editor.value,
-    words:updateWordCount(),
-    elapsed:elapsedBefore
+    title: sessionTitle.textContent,
+    content: editor.value,
+    words: stats.words,
+    charsWithSpaces: stats.charsWithSpaces,
+    charsNoSpaces: stats.charsNoSpaces,
+    elapsed: elapsedBefore
   };
   localStorage.setItem(LS_SESSION, JSON.stringify(sessionData));
 }
@@ -302,7 +318,7 @@ function restoreSession(){
     sessionTitle.textContent=s.title || '';
     editor.value=s.content || '';
     elapsedBefore=s.elapsed || 0;
-    updateWordCount();
+    updateStats();
     updateTimerDisplay();
   }
 }
