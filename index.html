@@ -80,26 +80,44 @@
   select,input[type="checkbox"],input[type="number"]{ padding:6px; border-radius:6px; border:1px solid rgba(0,0,0,0.08); font-family:inherit; }
   label.small{ color:var(--muted); font-size:0.8rem; }
 
-#resetThemeFontBtn {
-  display:block;
-  margin:10px auto 0 auto;
-  padding:6px 14px;
-  border-radius:8px;
-  border:1.5px solid #b0b0b0;
-  background:#e0e0e0;
-  color:#111;
-  font-family:var(--app-font, 'Spectral');
-  font-weight:500;
-  cursor:pointer;
-  text-align:center;
-  font-size:0.95rem;
-}
+  #resetThemeFontBtn {
+    display:block;
+    margin:10px auto 0 auto;
+    padding:6px 14px;
+    border-radius:8px;
+    border:1.5px solid #b0b0b0;
+    background:#e0e0e0;
+    color:#111;
+    font-family:var(--app-font, 'Spectral');
+    font-weight:500;
+    cursor:pointer;
+    text-align:center;
+    font-size:0.95rem;
+  }
   #resetThemeFontBtn:hover { opacity:0.85; }
 
   @media (max-width:640px){
     #editor{ width:90%; padding:1.2rem; }
     #sessionTitle{ width:calc(90% - 2rem); }
     .settings-panel{ right:6px; left:auto; }
+  }
+
+  /* Fullscreen mimic for iOS / mobile */
+  body.fullscreen, html.fullscreen {
+    overflow: hidden;
+  }
+  .wrap.fullscreen {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.5rem;
+  }
+  #editor.fullscreen {
+    width: 90%;
+    height: calc(100vh - 120px); /* adjust for title + controls */
   }
 </style>
 </head>
@@ -197,7 +215,6 @@ function updateStats(){
   const words = text.trim().split(/\s+/).filter(Boolean).length;
   const charsWithSpaces = text.length;
   const charsNoSpaces = text.replace(/\s/g,'').length;
-
   wordCountEl.textContent = `Words: ${words} | Chars: ${charsNoSpaces} (with spaces: ${charsWithSpaces})`;
   return { words, charsWithSpaces, charsNoSpaces };
 }
@@ -227,7 +244,7 @@ function startTimer(){
 /* ===== Pause / Resume ===== */
 function applyPauseState(paused){
   if(!paused && isPaused){
-    startTime=Date.now(); // resume from where left off
+    startTime=Date.now();
   }
   isPaused=paused;
   editor.readOnly=isPaused;
@@ -245,11 +262,39 @@ resetBtnTop.addEventListener('click',()=>{
   localStorage.removeItem(LS_SESSION);
 });
 
-/* ===== Fullscreen ===== */
-fullscreenBtn.addEventListener('click',()=>{
-  if(!document.fullscreenElement) document.documentElement.requestFullscreen();
-  else document.exitFullscreen();
+/* ===== Fullscreen (iPad-friendly) ===== */
+function setEditorHeight() {
+  if (editor.classList.contains('fullscreen')) {
+    const vh = window.innerHeight;
+    editor.style.height = (vh - 120) + 'px';
+  } else {
+    editor.style.height = '6em';
+  }
+}
+fullscreenBtn.addEventListener('click', () => {
+  if (window.innerWidth > 768) {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {
+        document.body.classList.toggle('fullscreen');
+        document.querySelector('.wrap').classList.toggle('fullscreen');
+        editor.classList.toggle('fullscreen');
+        setEditorHeight();
+      });
+    } else {
+      document.exitFullscreen();
+      document.body.classList.remove('fullscreen');
+      document.querySelector('.wrap').classList.remove('fullscreen');
+      editor.classList.remove('fullscreen');
+      setEditorHeight();
+    }
+  } else {
+    document.body.classList.toggle('fullscreen');
+    document.querySelector('.wrap').classList.toggle('fullscreen');
+    editor.classList.toggle('fullscreen');
+    setEditorHeight();
+  }
 });
+window.addEventListener('resize', setEditorHeight);
 
 /* ===== Download ===== */
 downloadBtn.addEventListener('click',()=>{
