@@ -28,17 +28,21 @@
     --controls:#222;
     --accent:#d28f3a;
   }
+
   html,body{ height:100%; margin:0; }
   body{
     background:var(--bg-dark);
     font-family: monospace;
     display:flex;
+    flex-direction:column;
     align-items:center;
-    justify-content:center;
+    justify-content:flex-start;
     min-height:100vh;
     position:relative;
+    padding-top: max(150px, 10vh); /* responsive top padding */
   }
   .wrap { width:100%; display:flex; flex-direction:column; align-items:center; gap:0.5rem; }
+  
   #sessionTitle{
     width:500px; max-width:90%;
     font-size:1.5rem; font-weight:500;
@@ -103,9 +107,7 @@
   }
 
   /* Fullscreen mimic for iOS / mobile */
-  body.fullscreen, html.fullscreen {
-    overflow: hidden;
-  }
+  body.fullscreen, html.fullscreen { overflow: hidden; }
   .wrap.fullscreen {
     width: 100vw;
     height: 100vh;
@@ -114,10 +116,11 @@
     align-items: center;
     justify-content: flex-start;
     gap: 0.5rem;
+    padding-top: 20px; /* small padding in fullscreen */
   }
   #editor.fullscreen {
     width: 90%;
-    height: calc(100vh - 120px); /* adjust for title + controls */
+    height: calc(100vh - 120px);
   }
 </style>
 </head>
@@ -164,7 +167,6 @@
 </div>
 
 <script>
-/* ===== Elements ===== */
 const editor=document.getElementById('editor');
 const sessionTitle=document.getElementById('sessionTitle');
 const wordCountEl=document.getElementById('wordCount');
@@ -179,17 +181,14 @@ const fontSelect=document.getElementById('fontSelect');
 const themeSelect=document.getElementById('themeSelect');
 const resetThemeFontBtn=document.getElementById('resetThemeFontBtn');
 
-/* ===== State ===== */
 let isPaused=false;
 let startTime=Date.now();
 let elapsedBefore=0;
 let timerInterval;
 
-/* ===== Local Storage Keys ===== */
 const LS_SESSION='reverie_writer_session';
 const LS_SETTINGS='reverie_writer_settings';
 
-/* ===== Font & Theme ===== */
 function applyFont(name){
   let fam;
   switch(name){
@@ -209,7 +208,6 @@ function applyTheme(name){
   saveSettings();
 }
 
-/* ===== Stats ===== */
 function updateStats(){
   const text = editor.value;
   const words = text.trim().split(/\s+/).filter(Boolean).length;
@@ -219,7 +217,6 @@ function updateStats(){
   return { words, charsWithSpaces, charsNoSpaces };
 }
 
-/* ===== Timer ===== */
 function updateTimerDisplay(){
   let s=elapsedBefore;
   let display='';
@@ -241,7 +238,6 @@ function startTimer(){
   },1000);
 }
 
-/* ===== Pause / Resume ===== */
 function applyPauseState(paused){
   if(!paused && isPaused){
     startTime=Date.now();
@@ -253,7 +249,6 @@ function applyPauseState(paused){
 }
 pauseBtn.addEventListener('click', ()=> applyPauseState(!isPaused));
 
-/* ===== Reset Session ===== */
 resetBtnTop.addEventListener('click',()=>{
   editor.value=''; sessionTitle.textContent='';
   elapsedBefore=0; startTime=Date.now();
@@ -262,7 +257,6 @@ resetBtnTop.addEventListener('click',()=>{
   localStorage.removeItem(LS_SESSION);
 });
 
-/* ===== Fullscreen (iPad-friendly) ===== */
 function setEditorHeight() {
   if (editor.classList.contains('fullscreen')) {
     const vh = window.innerHeight;
@@ -296,7 +290,6 @@ fullscreenBtn.addEventListener('click', () => {
 });
 window.addEventListener('resize', setEditorHeight);
 
-/* ===== Download ===== */
 downloadBtn.addEventListener('click',()=>{
   const text=editor.value;
   const title=sessionTitle.textContent.trim();
@@ -324,7 +317,6 @@ Time: ${display}
   applyPauseState(true);
 });
 
-/* ===== Settings Panel ===== */
 settingsBtn.addEventListener('click',(e)=>{
   e.stopPropagation();
   const open=settingsPanel.classList.toggle('open');
@@ -343,7 +335,6 @@ resetThemeFontBtn.addEventListener('click',()=>{
   localStorage.removeItem(LS_SETTINGS);
 });
 
-/* ===== Local Storage Functions ===== */
 function saveSession(){
   const stats = updateStats();
   const sessionData={
@@ -383,12 +374,10 @@ function restoreSettings(){
   }
 }
 
-/* ===== Auto-save Interval ===== */
 setInterval(()=>{
   if(!isPaused) saveSession();
 },5000);
 
-/* ===== Restore on Load ===== */
 restoreSettings();
 restoreSession();
 startTimer();
