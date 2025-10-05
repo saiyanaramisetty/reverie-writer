@@ -221,12 +221,12 @@ function startTimer(){
 /* ===== Pause / Resume ===== */
 function applyPauseState(paused){
   if(!paused && isPaused){
-    startTime=Date.now(); // resume from where left off
+    startTime = Date.now(); // resume from pause
   }
-  isPaused=paused;
-  editor.readOnly=isPaused;
-  sessionTitle.contentEditable=!isPaused;
-  pauseBtn.textContent=isPaused?'▶️':'⏸️';
+  isPaused = paused;
+  editor.readOnly = isPaused;
+  sessionTitle.contentEditable = !isPaused;
+  pauseBtn.textContent = isPaused ? '▶️' : '⏸️';
 }
 pauseBtn.addEventListener('click', ()=> applyPauseState(!isPaused));
 
@@ -254,7 +254,7 @@ downloadBtn.addEventListener('click',()=>{
   let display='';
   if(elapsed<60) display=`${elapsed}s`;
   else if(elapsed<3600){ const m=Math.floor(elapsed/60); const sec=elapsed%60; display=`${m}m ${sec}s`; }
-  else { const h=Math.floor(elapsed/3600); const m=Math.floor((elapsed%3600)/60); const sec=elapsed%60; display=`${h}h ${m}m ${sec}s`; }
+  else { const h=Math.floor(elapsed/3600); const m=Math.floor((elapsed%3600)/60); const sec=s%60; display=`${h}h ${m}m ${sec}s`; }
 
   const header=`Title: ${title||'[No Title]'}\nWords: ${words}\nTime: ${display}\n\n`;
   const blob=new Blob([header+text],{type:'text/plain'});
