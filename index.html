@@ -1,268 +1,285 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Reverie Writer</title>
-<link href="https://fonts.googleapis.com/css2?family=Spectral:wght@400;600&display=swap" rel="stylesheet">
+
+<link href="https://fonts.googleapis.com/css2?family=Spectral:wght@400;500;600&family=Merriweather:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
 <style>
-  body {
-    margin: 0;
-    background-color: #1e1e1e;
+  :root{
+    --bg-dark:#1e1e1e;
+    --paper:#fafafa;
+    --paper-2:#f5f5f5;
+    --text-dark:#3a3a3a;
+    --muted:#aaa;
+    --controls:#eee;
+    --accent:#ffbb66;
+    --editor-width:70%;
+    --editor-max:600px;
+  }
+  [data-theme="light"]{
+    --bg-dark:#f3efe9;
+    --paper:#fffef8;
+    --paper-2:#fff9f0;
+    --text-dark:#222;
+    --muted:#666;
+    --controls:#222;
+    --accent:#d28f3a;
+  }
+  html,body{ height:100%; margin:0; }
+  body{
+    background:var(--bg-dark);
     font-family: monospace;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    position: relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:100vh;
+    position:relative;
   }
-
-  #sessionTitle {
-    width: 500px;
-    font-size: 1.5rem;
-    font-weight: 500;
-    margin-bottom: 1rem;
-    padding: 0.5rem 1rem;
-    color: #999999;
-    background: transparent;
-    outline: none;
-    border-radius: 8px;
-    font-family: 'Spectral', serif;
+  .wrap { width:100%; display:flex; flex-direction:column; align-items:center; gap:0.5rem; }
+  #sessionTitle{
+    width:500px; max-width:90%;
+    font-size:1.5rem; font-weight:500;
+    margin:0; padding:0.25rem 0.5rem;
+    color:var(--muted); background:transparent; border:none; outline:none;
+    font-family: var(--app-font, 'Spectral'), serif; text-align:center;
   }
-
-  #sessionTitle:empty:before {
-    content: attr(data-placeholder);
-    color: #999999;
-    pointer-events: none;
+  #sessionTitle:empty:before{
+    content:attr(data-placeholder); color:#bdbdbd; pointer-events:none;
   }
-
-  #editor {
-    background: linear-gradient(to bottom, #fafafa 0%, #f5f5f5 100%);
-    color: #3a3a3a;
-    width: 70%;
-    max-width: 600px;
-    height: 6em;
-    border: 1px solid #e0e0e0;
-    padding: 2rem;
-    resize: none;
-    font-size: 1.2rem;
-    line-height: 2.4em;
-    outline: none;
-    overflow: hidden;
-    caret-color: #ffbb66;
-    border-radius: 12px;
-    font-family: 'Spectral', serif;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3), inset 0 5px 15px rgba(0,0,0,0.05);
-    letter-spacing: 0.5px;
-    word-spacing: 2px;
-    font-feature-settings: "liga" 1, "dlig" 1;
-    font-variant-ligatures: common-ligatures discretionary-ligatures;
+  #editor{
+    width:var(--editor-width); max-width:var(--editor-max); height:6em;
+    background: linear-gradient(to bottom, var(--paper) 0%, var(--paper-2) 100%);
+    color:var(--text-dark); border:1px solid rgba(0,0,0,0.06);
+    padding:2rem; resize:none; font-size:1.2rem; line-height:2.4em; outline:none;
+    overflow:hidden; caret-color:var(--accent); border-radius:12px;
+    font-family: var(--app-font, 'Spectral'), serif;
+    box-shadow:0 10px 30px rgba(0,0,0,0.25), inset 0 5px 15px rgba(0,0,0,0.04);
+    letter-spacing:0.5px; word-spacing:2px;
   }
-
-  #controls {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    opacity: 0.2;
-    transition: opacity 0.3s ease;
-    font-family: 'Spectral', serif;
+  #controls{
+    position:fixed; top:15px; right:15px; display:flex; gap:10px; align-items:center;
+    opacity:0.95; z-index:50; font-family: var(--app-font, 'Spectral'), serif;
   }
+  .small { font-size:0.85rem; color:var(--muted); user-select:none; }
+  .icon-btn { background:none; border:none; color:var(--controls); font-size:1.2rem; cursor:pointer; padding:6px; }
+  .icon-btn:focus { outline:2px solid rgba(255,187,102,0.12); border-radius:6px; }
 
-  #controls:hover { opacity: 1; }
-
-  .icon-btn {
-    background: none;
-    border: none;
-    color: #eee;
-    font-size: 1.5rem;
-    cursor: pointer;
+  .settings { position:relative; }
+  .settings-panel {
+    position:absolute; right:0; top:36px;
+    background:var(--bg-dark); color:var(--controls);
+    border:1px solid rgba(255,255,255,0.03); padding:12px; width:240px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.4); display:none; z-index:60;
+    font-family:var(--app-font,'Spectral'), serif;
   }
+  .settings-panel.open{ display:block; }
+  .settings-row{ margin-bottom:10px; display:flex; flex-direction:column; gap:6px; }
+  select,input[type="checkbox"],input[type="number"]{ padding:6px; border-radius:6px; border:1px solid rgba(0,0,0,0.08); font-family:inherit; }
+  label.small{ color:var(--muted); font-size:0.8rem; }
 
-  .icon-btn:hover { color: #0f9; }
+  #resetThemeFontBtn {
+    display:block;
+    margin:10px auto 0 auto;
+    padding:6px 14px;
+    border-radius:8px;
+    border:1.5px solid #b0b0b0;
+    background:#e0e0e0;
+    color:#111;
+    font-family:var(--app-font, 'Spectral');
+    font-weight:500;
+    cursor:pointer;
+    text-align:center;
+    font-size:0.95rem;
+  }
+  #resetThemeFontBtn:hover { opacity:0.85; }
 
-  #wordCount, #timer {
-    font-size: 0.85rem;
-    color: #aaa;
-    white-space: nowrap;
-    font-family: 'Spectral', serif;
+  @media (max-width:640px){
+    #editor{ width:90%; padding:1.2rem; }
+    #sessionTitle{ width:calc(90% - 2rem); }
+    .settings-panel{ right:6px; left:auto; }
   }
 </style>
 </head>
-<body>
-
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-7TM4WLK5ER"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-7TM4WLK5ER');
-</script>
+<body data-theme="dark">
 
 <div id="controls">
-  <span id="wordCount">Words: 0</span>
-  <span id="timer">Time: 0s</span>
+  <div class="small" id="wordCount">Words: 0</div>
+  <div class="small" id="timer">Time: 0s</div>
+
   <button id="fullscreenBtn" class="icon-btn" title="Toggle Fullscreen">⛶</button>
   <button id="pauseBtn" class="icon-btn" title="Pause/Resume Session">⏸️</button>
-  <button id="resetBtn" class="icon-btn" title="Reset Session">🔄</button>
+  <button id="resetBtnTop" class="icon-btn" title="Reset Session">🔄</button>
+
+  <div class="settings">
+    <button id="settingsBtn" class="icon-btn" title="Settings">⚙️</button>
+    <div id="settingsPanel" class="settings-panel" role="dialog" aria-hidden="true">
+      <div class="settings-row">
+        <label class="small">Font</label>
+        <select id="fontSelect">
+          <option value="Spectral">Spectral (serif)</option>
+          <option value="Merriweather">Merriweather (serif)</option>
+          <option value="Inter">Inter (sans)</option>
+          <option value="monospace">Monospace</option>
+          <option value="Georgia">Georgia</option>
+        </select>
+      </div>
+      <div class="settings-row">
+        <label class="small">Theme</label>
+        <select id="themeSelect">
+          <option value="dark">Dark</option>
+          <option value="light">Light</option>
+        </select>
+      </div>
+      <button id="resetThemeFontBtn">Reset</button>
+    </div>
+  </div>
+
   <button id="downloadBtn" class="icon-btn" title="Download & Pause">💾</button>
 </div>
 
-<div id="sessionTitle" contenteditable="true" data-placeholder="What are you writing about?"></div>
-<textarea id="editor" spellcheck="false" placeholder="Start writing..."></textarea>
+<div class="wrap">
+  <div id="sessionTitle" contenteditable="true" data-placeholder="What are you writing about?"></div>
+  <textarea id="editor" spellcheck="false" placeholder="Start writing..."></textarea>
+</div>
 
 <script>
-const editor = document.getElementById('editor');
-const sessionTitle = document.getElementById('sessionTitle');
-const wordCountEl = document.getElementById('wordCount');
-const timerEl = document.getElementById('timer');
-const fullscreenBtn = document.getElementById('fullscreenBtn');
-const pauseBtn = document.getElementById('pauseBtn');
-const resetBtn = document.getElementById('resetBtn');
-const downloadBtn = document.getElementById('downloadBtn');
+/* ===== Elements ===== */
+const editor=document.getElementById('editor');
+const sessionTitle=document.getElementById('sessionTitle');
+const wordCountEl=document.getElementById('wordCount');
+const timerEl=document.getElementById('timer');
+const fullscreenBtn=document.getElementById('fullscreenBtn');
+const pauseBtn=document.getElementById('pauseBtn');
+const resetBtnTop=document.getElementById('resetBtnTop');
+const downloadBtn=document.getElementById('downloadBtn');
+const settingsBtn=document.getElementById('settingsBtn');
+const settingsPanel=document.getElementById('settingsPanel');
+const fontSelect=document.getElementById('fontSelect');
+const themeSelect=document.getElementById('themeSelect');
+const resetThemeFontBtn=document.getElementById('resetThemeFontBtn');
 
-let startTime = Date.now();
-let elapsedBeforePause = 0;
-let isPaused = false;
+/* ===== State ===== */
+let isPaused=false;
+let startTime=Date.now();
+let elapsedBefore=0;
+let timerInterval;
 
-// Restore session from localStorage
-window.addEventListener('load', () => {
-  const savedEditor = localStorage.getItem('editorContent');
-  const savedTitle = localStorage.getItem('sessionTitle');
-  
-  if (savedEditor) editor.value = savedEditor;
-  if (savedTitle) sessionTitle.textContent = savedTitle;
+/* ===== Font & Theme ===== */
+function applyFont(name){
+  let fam;
+  switch(name){
+    case 'Merriweather': fam="'Merriweather', serif"; break;
+    case 'Inter': fam="'Inter', sans-serif"; break;
+    case 'monospace': fam="monospace"; break;
+    case 'Georgia': fam="Georgia, serif"; break;
+    default: fam="'Spectral', serif";
+  }
+  document.documentElement.style.setProperty('--app-font', fam);
+  fontSelect.value=name;
+}
+function applyTheme(name){
+  document.body.setAttribute('data-theme', name==='light'?'light':'dark');
+  themeSelect.value=name;
+}
 
-  editor.focus();
-  updateWordCount();
-});
-
-// Timer
-let timerInterval = setInterval(updateTimer, 1000);
-function updateTimer() {
-  if (!isPaused) {
-    const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000) + elapsedBeforePause;
-    let display = "";
-    if (elapsedSeconds < 60) display = `${elapsedSeconds}s`;
-    else if (elapsedSeconds < 3600) {
-      const mins = Math.floor(elapsedSeconds / 60);
-      const secs = elapsedSeconds % 60;
-      display = `${mins}m ${secs}s`;
-    } else {
-      const hrs = Math.floor(elapsedSeconds / 3600);
-      const mins = Math.floor((elapsedSeconds % 3600) / 60);
-      const secs = elapsedSeconds % 60;
-      display = `${hrs}h ${mins}m ${secs}s`;
+/* ===== Timer & Word Count ===== */
+function updateWordCount(){
+  const words=editor.value.trim().split(/\s+/).filter(Boolean).length;
+  wordCountEl.textContent='Words: '+words;
+}
+function updateTimerDisplay(){
+  let s=elapsedBefore;
+  let display='';
+  if(s<60) display=`${s}s`;
+  else if(s<3600){ const m=Math.floor(s/60); const sec=s%60; display=`${m}m ${sec}s`; }
+  else { const h=Math.floor(s/3600); const m=Math.floor((s%3600)/60); const sec=s%60; display=`${h}h ${m}m ${sec}s`; }
+  timerEl.textContent='Time: '+display;
+}
+function startTimer(){
+  clearInterval(timerInterval);
+  timerInterval=setInterval(()=>{
+    if(!isPaused){
+      const now=Date.now();
+      elapsedBefore += Math.floor((now-startTime)/1000);
+      startTime=now;
+      updateWordCount();
+      updateTimerDisplay();
     }
-    timerEl.textContent = "Time: " + display;
-  }
+  },1000);
 }
+startTimer();
 
-// Word count
-function updateWordCount() {
-  let words = editor.value.trim().split(/\s+/).filter(Boolean);
-  wordCountEl.textContent = "Words: " + words.length;
-}
-editor.addEventListener('input', () => {
-  if (!isPaused) {
-    updateWordCount();
-    editor.scrollTop = editor.scrollHeight;
+/* ===== Pause / Resume ===== */
+function applyPauseState(paused){
+  if(paused && !isPaused){
+    // paused
+  } else if(!paused && isPaused){
+    startTime=Date.now();
   }
+  isPaused=paused;
+  editor.readOnly=isPaused;
+  sessionTitle.contentEditable=!isPaused;
+  pauseBtn.textContent=isPaused?'▶️':'⏸️';
+}
+pauseBtn.addEventListener('click', ()=> applyPauseState(!isPaused));
+
+/* ===== Reset Session ===== */
+resetBtnTop.addEventListener('click',()=>{
+  editor.value=''; sessionTitle.textContent='';
+  elapsedBefore=0; startTime=Date.now();
+  applyPauseState(false);
+  updateWordCount(); updateTimerDisplay();
 });
 
-// Fullscreen toggle
-fullscreenBtn.addEventListener('click', () => {
-  if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+/* ===== Fullscreen ===== */
+fullscreenBtn.addEventListener('click',()=>{
+  if(!document.fullscreenElement) document.documentElement.requestFullscreen();
   else document.exitFullscreen();
 });
 
-// Pause/Resume
-pauseBtn.addEventListener('click', () => {
-  if (!isPaused) {
-    elapsedBeforePause += Math.floor((Date.now() - startTime) / 1000);
-    editor.readOnly = true;
-    sessionTitle.contentEditable = "false";
-    pauseBtn.textContent = '▶️';
-    isPaused = true;
-  } else {
-    startTime = Date.now();
-    editor.readOnly = false;
-    sessionTitle.contentEditable = "true";
-    pauseBtn.textContent = '⏸️';
-    isPaused = false;
-  }
-});
+/* ===== Download ===== */
+downloadBtn.addEventListener('click',()=>{
+  const text=editor.value;
+  const title=sessionTitle.textContent.trim();
+  const words=text.trim().split(/\s+/).filter(Boolean).length;
+  const elapsed=elapsedBefore;
+  let display='';
+  if(elapsed<60) display=`${elapsed}s`;
+  else if(elapsed<3600){ const m=Math.floor(elapsed/60); const sec=elapsed%60; display=`${m}m ${sec}s`; }
+  else { const h=Math.floor(elapsed/3600); const m=Math.floor((elapsed%3600)/60); const sec=elapsed%60; display=`${h}h ${m}m ${sec}s`; }
 
-// Download + Pause
-downloadBtn.addEventListener('click', () => {
-  let text = editor.value;
-  let titleText = sessionTitle.textContent.trim();
-  let totalWords = text.trim().split(/\s+/).filter(Boolean).length;
-  const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000) + elapsedBeforePause;
-
-  let timerDisplay = "";
-  if (elapsedSeconds < 60) timerDisplay = `${elapsedSeconds}s`;
-  else if (elapsedSeconds < 3600) {
-    const mins = Math.floor(elapsedSeconds / 60);
-    const secs = elapsedSeconds % 60;
-    timerDisplay = `${mins}m ${secs}s`;
-  } else {
-    const hrs = Math.floor(elapsedSeconds / 3600);
-    const mins = Math.floor((elapsedSeconds % 3600) / 60);
-    const secs = elapsedSeconds % 60;
-    timerDisplay = `${hrs}h ${mins}m ${secs}s`;
-  }
-
-  let header = `Title: ${titleText}\nWords: ${totalWords}\nTime: ${timerDisplay}\n\n`;
-  let fullText = header + text;
-
-  const now = new Date();
-  const filename = `writing_${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}-${String(now.getMinutes()).padStart(2,'0')}-${String(now.getSeconds()).padStart(2,'0')}.txt`;
-
-  let blob = new Blob([fullText], {type: "text/plain"});
-  let link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = filename;
+  const header=`Title: ${title||'[No Title]'}\nWords: ${words}\nTime: ${display}\n\n`;
+  const blob=new Blob([header+text],{type:'text/plain'});
+  const link=document.createElement('a');
+  link.href=URL.createObjectURL(blob);
+  const now=new Date();
+  link.download=`reveriewriter_${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}-${String(now.getMinutes()).padStart(2,'0')}-${String(now.getSeconds()).padStart(2,'0')}.txt`;
   link.click();
+  applyPauseState(true);
+});
 
-  if (!isPaused) {
-    elapsedBeforePause += Math.floor((Date.now() - startTime) / 1000);
-    editor.readOnly = true;
-    sessionTitle.contentEditable = "false";
-    isPaused = true;
-    pauseBtn.textContent = '▶️';
+/* ===== Settings Panel ===== */
+settingsBtn.addEventListener('click',(e)=>{
+  e.stopPropagation();
+  const open=settingsPanel.classList.toggle('open');
+  settingsPanel.setAttribute('aria-hidden',!open);
+});
+document.addEventListener('click',(e)=>{
+  if(!settingsPanel.contains(e.target) && e.target!==settingsBtn){
+    settingsPanel.classList.remove('open');
+    settingsPanel.setAttribute('aria-hidden','true');
   }
 });
 
-// Reset
-resetBtn.addEventListener('click', () => {
-  editor.value = "";
-  sessionTitle.textContent = "";
-  editor.readOnly = false;
-  sessionTitle.contentEditable = "true";
-  wordCountEl.textContent = "Words: 0";
-  timerEl.textContent = "Time: 0s";
-  startTime = Date.now();
-  elapsedBeforePause = 0;
-  isPaused = false;
-  pauseBtn.textContent = '⏸️';
-  localStorage.clear(); // clear on reset only
-  editor.focus();
+/* ===== Font & Theme Buttons ===== */
+fontSelect.addEventListener('change',()=>applyFont(fontSelect.value));
+themeSelect.addEventListener('change',()=>applyTheme(themeSelect.value));
+resetThemeFontBtn.addEventListener('click',()=>{
+  applyFont('Spectral'); applyTheme('dark');
 });
-
-// Auto-save to localStorage every 5 seconds
-setInterval(() => {
-  if (!isPaused) {
-    localStorage.setItem('editorContent', editor.value);
-    localStorage.setItem('sessionTitle', sessionTitle.textContent);
-  }
-}, 5000);
 </script>
-
 </body>
 </html>
