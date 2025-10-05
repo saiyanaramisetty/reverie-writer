@@ -8,117 +8,126 @@
 <link href="https://fonts.googleapis.com/css2?family=Spectral:wght@400;500;600&family=Merriweather:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;600&display=swap" rel="stylesheet">
 
 <style>
-:root{
-  --bg-dark:#1e1e1e;
-  --paper:#fafafa;
-  --paper-2:#f5f5f5;
-  --text-dark:#3a3a3a;
-  --muted:#aaa;
-  --controls:#eee;
-  --accent:#ffbb66;
-  --editor-width:70%;
-  --editor-max:600px;
-}
-[data-theme="light"]{
-  --bg-dark:#f3efe9;
-  --paper:#fffef8;
-  --paper-2:#fff9f0;
-  --text-dark:#222;
-  --muted:#666;
-  --controls:#222;
-  --accent:#d28f3a;
-}
-html,body{ height:100%; margin:0; }
-body{
-  background:var(--bg-dark);
-  font-family: monospace;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:flex-start;
-  min-height:100vh;
-  position:relative;
-  padding-top: max(200px, 10vh);
-}
-.wrap { width:100%; display:flex; flex-direction:column; align-items:center; gap:0.5rem; }
+  :root{
+    --bg-dark:#1e1e1e;
+    --paper:#fafafa;
+    --paper-2:#f5f5f5;
+    --text-dark:#3a3a3a;
+    --muted:#aaa;
+    --controls:#eee;
+    --accent:#ffbb66;
+    --editor-width:70%;
+    --editor-max:600px;
+  }
+  [data-theme="light"]{
+    --bg-dark:#f3efe9;
+    --paper:#fffef8;
+    --paper-2:#fff9f0;
+    --text-dark:#222;
+    --muted:#666;
+    --controls:#222;
+    --accent:#d28f3a;
+  }
 
-#sessionTitle{
-  width:500px; max-width:90%;
-  font-size:1.5rem; font-weight:500;
-  margin:0; padding:0.25rem 0.5rem;
-  color:var(--muted); background:transparent; border:none; outline:none;
-  font-family: var(--app-font, 'Spectral'), serif; text-align:center;
-}
-#sessionTitle:empty:before{
-  content:attr(data-placeholder); color:#bdbdbd; pointer-events:none;
-}
-#editor{
-  width:var(--editor-width); max-width:var(--editor-max); height:6em;
-  background: linear-gradient(to bottom, var(--paper) 0%, var(--paper-2) 100%);
-  color:var(--text-dark); border:1px solid rgba(0,0,0,0.06);
-  padding:2rem; resize:none; font-size:1.2rem; line-height:2.4em; outline:none;
-  overflow:hidden; caret-color:var(--accent); border-radius:12px;
-  font-family: var(--app-font, 'Spectral'), serif;
-  box-shadow:0 10px 30px rgba(0,0,0,0.25), inset 0 5px 15px rgba(0,0,0,0.04);
-  letter-spacing:0.5px; word-spacing:2px;
-}
-#controls{
-  position:fixed; top:15px; right:15px; display:flex; gap:10px; align-items:center;
-  opacity:0.95; z-index:50; font-family: var(--app-font, 'Spectral'), serif;
-}
-.small { font-size:0.85rem; color:var(--muted); user-select:none; }
-.icon-btn { background:none; border:none; color:var(--controls); font-size:1.2rem; cursor:pointer; padding:6px; }
-.icon-btn:focus { outline:2px solid rgba(255,187,102,0.12); border-radius:6px; }
+  html,body{ height:100%; margin:0; }
+  body{
+    background:var(--bg-dark);
+    font-family: monospace;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:flex-start;
+    min-height:100vh;
+    position:relative;
+    padding-top: 200px; /* Desktop top padding */
+  }
 
-.settings { position:relative; }
-.settings-panel {
-  position:absolute; right:0; top:36px;
-  background:var(--bg-dark); color:var(--controls);
-  border:1px solid rgba(255,255,255,0.03); padding:12px; width:240px;
-  box-shadow:0 6px 18px rgba(0,0,0,0.4); display:none; z-index:60;
-  font-family:var(--app-font,'Spectral'), serif;
-}
-.settings-panel.open{ display:block; }
-.settings-row{ margin-bottom:10px; display:flex; flex-direction:column; gap:6px; }
-select,input[type="checkbox"],input[type="number"]{ padding:6px; border-radius:6px; border:1px solid rgba(0,0,0,0.08); font-family:inherit; }
-label.small{ color:var(--muted); font-size:0.8rem; }
+  @media (max-width:1024px){
+    body{
+      padding-top: max(150px, 10vh); /* iPad/Mobile top padding */
+    }
+  }
 
-#resetThemeFontBtn {
-  display:block;
-  margin:10px auto 0 auto;
-  padding:6px 14px;
-  border-radius:8px;
-  border:1.5px solid #b0b0b0;
-  background:#e0e0e0;
-  color:#111;
-  font-family:var(--app-font, 'Spectral');
-  font-weight:500;
-  cursor:pointer;
-  text-align:center;
-  font-size:0.95rem;
-}
-#resetThemeFontBtn:hover { opacity:0.85; }
+  .wrap { width:100%; display:flex; flex-direction:column; align-items:center; gap:0.5rem; }
+  
+  #sessionTitle{
+    width:500px; max-width:90%;
+    font-size:1.5rem; font-weight:500;
+    margin:0; padding:0.25rem 0.5rem;
+    color:var(--muted); background:transparent; border:none; outline:none;
+    font-family: var(--app-font, 'Spectral'), serif; text-align:center;
+  }
+  #sessionTitle:empty:before{
+    content:attr(data-placeholder); color:#bdbdbd; pointer-events:none;
+  }
+  #editor{
+    width:var(--editor-width); max-width:var(--editor-max); height:6em;
+    background: linear-gradient(to bottom, var(--paper) 0%, var(--paper-2) 100%);
+    color:var(--text-dark); border:1px solid rgba(0,0,0,0.06);
+    padding:2rem; resize:none; font-size:1.2rem; line-height:2.4em; outline:none;
+    overflow:hidden; caret-color:var(--accent); border-radius:12px;
+    font-family: var(--app-font, 'Spectral'), serif;
+    box-shadow:0 10px 30px rgba(0,0,0,0.25), inset 0 5px 15px rgba(0,0,0,0.04);
+    letter-spacing:0.5px; word-spacing:2px;
+  }
+  #controls{
+    position:fixed; top:15px; right:15px; display:flex; gap:10px; align-items:center;
+    opacity:0.95; z-index:50; font-family: var(--app-font, 'Spectral'), serif;
+  }
+  .small { font-size:0.85rem; color:var(--muted); user-select:none; }
+  .icon-btn { background:none; border:none; color:var(--controls); font-size:1.2rem; cursor:pointer; padding:6px; }
+  .icon-btn:focus { outline:2px solid rgba(255,187,102,0.12); border-radius:6px; }
 
-@media (max-width:640px){
-  #editor{ width:90%; padding:1.2rem; }
-  #sessionTitle{ width:calc(90% - 2rem); }
-  .settings-panel{ right:6px; left:auto; }
-}
+  .settings { position:relative; }
+  .settings-panel {
+    position:absolute; right:0; top:36px;
+    background:var(--bg-dark); color:var(--controls);
+    border:1px solid rgba(255,255,255,0.03); padding:12px; width:240px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.4); display:none; z-index:60;
+    font-family:var(--app-font,'Spectral'), serif;
+  }
+  .settings-panel.open{ display:block; }
+  .settings-row{ margin-bottom:10px; display:flex; flex-direction:column; gap:6px; }
+  select,input[type="checkbox"],input[type="number"]{ padding:6px; border-radius:6px; border:1px solid rgba(0,0,0,0.08); font-family:inherit; }
+  label.small{ color:var(--muted); font-size:0.8rem; }
 
-/* Fullscreen mimic for iOS / mobile */
-body.fullscreen, html.fullscreen { overflow: hidden; }
-.wrap.fullscreen {
-  width: 100vw;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 0.5rem;
-  padding-top: 20px;
-}
-#editor.fullscreen { width: 90%; height: calc(100vh - 120px); }
+  #resetThemeFontBtn {
+    display:block;
+    margin:10px auto 0 auto;
+    padding:6px 14px;
+    border-radius:8px;
+    border:1.5px solid #b0b0b0;
+    background:#e0e0e0;
+    color:#111;
+    font-family:var(--app-font, 'Spectral');
+    font-weight:500;
+    cursor:pointer;
+    text-align:center;
+    font-size:0.95rem;
+  }
+  #resetThemeFontBtn:hover { opacity:0.85; }
 
+  @media (max-width:640px){
+    #editor{ width:90%; padding:1.2rem; }
+    #sessionTitle{ width:calc(90% - 2rem); }
+    .settings-panel{ right:6px; left:auto; }
+  }
+
+  body.fullscreen, html.fullscreen { overflow: hidden; }
+  .wrap.fullscreen {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.5rem;
+    padding-top: 20px; /* small padding in fullscreen */
+  }
+  #editor.fullscreen {
+    width: 90%;
+    height: calc(100vh - 120px);
+  }
 </style>
 </head>
 <body data-theme="dark">
@@ -254,18 +263,16 @@ resetBtnTop.addEventListener('click',()=>{
   localStorage.removeItem(LS_SESSION);
 });
 
-/* ===== Fullscreen Handling ===== */
 function setEditorHeight() {
-  if (editor.classList.contains('fullscreen') && window.innerWidth > 768) {
-    editor.style.height = 'calc(100vh - 120px)';
+  if (editor.classList.contains('fullscreen')) {
+    const vh = window.innerHeight;
+    editor.style.height = (vh - 120) + 'px';
   } else {
     editor.style.height = '6em';
   }
 }
-
 fullscreenBtn.addEventListener('click', () => {
   if (window.innerWidth > 768) {
-    // Desktop: true fullscreen
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen().catch(() => {
         document.body.classList.toggle('fullscreen');
@@ -281,28 +288,14 @@ fullscreenBtn.addEventListener('click', () => {
       setEditorHeight();
     }
   } else {
-    // iPad / mobile mimic fullscreen
     document.body.classList.toggle('fullscreen');
     document.querySelector('.wrap').classList.toggle('fullscreen');
     editor.classList.toggle('fullscreen');
     setEditorHeight();
   }
 });
-
-// iPad / mobile: prevent exiting fullscreen on outside click
-document.addEventListener('click', (e) => {
-  const isMobile = window.innerWidth <= 768;
-  if (isMobile && document.body.classList.contains('fullscreen')) {
-    e.stopPropagation();
-  } else if (!settingsPanel.contains(e.target) && e.target !== settingsBtn) {
-    settingsPanel.classList.remove('open');
-    settingsPanel.setAttribute('aria-hidden', 'true');
-  }
-});
-
 window.addEventListener('resize', setEditorHeight);
 
-/* ===== Download & Settings ===== */
 downloadBtn.addEventListener('click',()=>{
   const text=editor.value;
   const title=sessionTitle.textContent.trim();
@@ -312,7 +305,7 @@ downloadBtn.addEventListener('click',()=>{
   let display='';
   if(elapsed<60) display=`${elapsed}s`;
   else if(elapsed<3600){ const m=Math.floor(elapsed/60); const sec=elapsed%60; display=`${m}m ${sec}s`; }
-  else { const h=Math.floor(elapsed/3600); const m=Math.floor((elapsed%3600)/60); const sec=elapsed%60; display=`${h}h ${m}m ${sec}s`; }
+  else { const h=Math.floor(elapsed/3600); const m=Math.floor((elapsed%3600)/60); const sec=s%60; display=`${h}h ${m}m ${sec}s`; }
 
   const header=`Title: ${title||'[No Title]'}
 Words: ${stats.words}
@@ -348,7 +341,6 @@ resetThemeFontBtn.addEventListener('click',()=>{
   localStorage.removeItem(LS_SETTINGS);
 });
 
-/* ===== Session Save / Restore ===== */
 function saveSession(){
   const stats = updateStats();
   const sessionData={
