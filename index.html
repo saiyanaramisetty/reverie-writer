@@ -39,8 +39,15 @@
     justify-content:flex-start;
     min-height:100vh;
     position:relative;
-    padding-top: max(200px, 10vh); /* responsive top padding */
+    padding-top: 200px; /* Desktop top padding */
   }
+
+  @media (max-width:1024px){
+    body{
+      padding-top: max(150px, 10vh); /* iPad/Mobile top padding */
+    }
+  }
+
   .wrap { width:100%; display:flex; flex-direction:column; align-items:center; gap:0.5rem; }
   
   #sessionTitle{
@@ -106,7 +113,6 @@
     .settings-panel{ right:6px; left:auto; }
   }
 
-  /* Fullscreen mimic for iOS / mobile */
   body.fullscreen, html.fullscreen { overflow: hidden; }
   .wrap.fullscreen {
     width: 100vw;
@@ -299,7 +305,7 @@ downloadBtn.addEventListener('click',()=>{
   let display='';
   if(elapsed<60) display=`${elapsed}s`;
   else if(elapsed<3600){ const m=Math.floor(elapsed/60); const sec=elapsed%60; display=`${m}m ${sec}s`; }
-  else { const h=Math.floor(elapsed/3600); const m=Math.floor((elapsed%3600)/60); const sec=elapsed%60; display=`${h}h ${m}m ${sec}s`; }
+  else { const h=Math.floor(elapsed/3600); const m=Math.floor((elapsed%3600)/60); const sec=s%60; display=`${h}h ${m}m ${sec}s`; }
 
   const header=`Title: ${title||'[No Title]'}
 Words: ${stats.words}
