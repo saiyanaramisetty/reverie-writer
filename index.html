@@ -80,20 +80,20 @@
   select,input[type="checkbox"],input[type="number"]{ padding:6px; border-radius:6px; border:1px solid rgba(0,0,0,0.08); font-family:inherit; }
   label.small{ color:var(--muted); font-size:0.8rem; }
 
-  #resetThemeFontBtn {
-    display:block;
-    margin:10px auto 0 auto;
-    padding:6px 14px;
-    border-radius:8px;
-    border:1.5px solid #b0b0b0;
-    background:#e0e0e0;
-    color:#111;
-    font-family:var(--app-font, 'Spectral');
-    font-weight:500;
-    cursor:pointer;
-    text-align:center;
-    font-size:0.95rem;
-  }
+#resetThemeFontBtn {
+  display:block;
+  margin:10px auto 0 auto;
+  padding:6px 14px;
+  border-radius:8px;
+  border:1.5px solid #b0b0b0;
+  background:#e0e0e0;
+  color:#111;
+  font-family:var(--app-font, 'Spectral');
+  font-weight:500;
+  cursor:pointer;
+  text-align:center;
+  font-size:0.95rem;
+}
   #resetThemeFontBtn:hover { opacity:0.85; }
 
   @media (max-width:640px){
@@ -167,6 +167,10 @@ let startTime=Date.now();
 let elapsedBefore=0;
 let timerInterval;
 
+/* ===== Local Storage Keys ===== */
+const LS_SESSION='reverie_writer_session';
+const LS_SETTINGS='reverie_writer_settings';
+
 /* ===== Font & Theme ===== */
 function applyFont(name){
   let fam;
@@ -179,16 +183,19 @@ function applyFont(name){
   }
   document.documentElement.style.setProperty('--app-font', fam);
   fontSelect.value=name;
+  saveSettings();
 }
 function applyTheme(name){
   document.body.setAttribute('data-theme', name==='light'?'light':'dark');
   themeSelect.value=name;
+  saveSettings();
 }
 
 /* ===== Timer & Word Count ===== */
 function updateWordCount(){
   const words=editor.value.trim().split(/\s+/).filter(Boolean).length;
   wordCountEl.textContent='Words: '+words;
+  return words;
 }
 function updateTimerDisplay(){
   let s=elapsedBefore;
@@ -210,14 +217,11 @@ function startTimer(){
     }
   },1000);
 }
-startTimer();
 
 /* ===== Pause / Resume ===== */
 function applyPauseState(paused){
-  if(paused && !isPaused){
-    // paused
-  } else if(!paused && isPaused){
-    startTime=Date.now();
+  if(!paused && isPaused){
+    startTime=Date.now(); // resume from where left off
   }
   isPaused=paused;
   editor.readOnly=isPaused;
@@ -232,6 +236,7 @@ resetBtnTop.addEventListener('click',()=>{
   elapsedBefore=0; startTime=Date.now();
   applyPauseState(false);
   updateWordCount(); updateTimerDisplay();
+  localStorage.removeItem(LS_SESSION);
 });
 
 /* ===== Fullscreen ===== */
@@ -244,7 +249,7 @@ fullscreenBtn.addEventListener('click',()=>{
 downloadBtn.addEventListener('click',()=>{
   const text=editor.value;
   const title=sessionTitle.textContent.trim();
-  const words=text.trim().split(/\s+/).filter(Boolean).length;
+  const words=updateWordCount();
   const elapsed=elapsedBefore;
   let display='';
   if(elapsed<60) display=`${elapsed}s`;
@@ -273,13 +278,59 @@ document.addEventListener('click',(e)=>{
     settingsPanel.setAttribute('aria-hidden','true');
   }
 });
-
-/* ===== Font & Theme Buttons ===== */
 fontSelect.addEventListener('change',()=>applyFont(fontSelect.value));
 themeSelect.addEventListener('change',()=>applyTheme(themeSelect.value));
 resetThemeFontBtn.addEventListener('click',()=>{
   applyFont('Spectral'); applyTheme('dark');
+  localStorage.removeItem(LS_SETTINGS);
 });
+
+/* ===== Local Storage Functions ===== */
+function saveSession(){
+  const sessionData={
+    title:sessionTitle.textContent,
+    content:editor.value,
+    words:updateWordCount(),
+    elapsed:elapsedBefore
+  };
+  localStorage.setItem(LS_SESSION, JSON.stringify(sessionData));
+}
+function restoreSession(){
+  const data=localStorage.getItem(LS_SESSION);
+  if(data){
+    const s=JSON.parse(data);
+    sessionTitle.textContent=s.title || '';
+    editor.value=s.content || '';
+    elapsedBefore=s.elapsed || 0;
+    updateWordCount();
+    updateTimerDisplay();
+  }
+}
+function saveSettings(){
+  const sData={ font: fontSelect.value, theme: themeSelect.value };
+  localStorage.setItem(LS_SETTINGS, JSON.stringify(sData));
+}
+function restoreSettings(){
+  const data=localStorage.getItem(LS_SETTINGS);
+  if(data){
+    const s=JSON.parse(data);
+    applyFont(s.font||'Spectral');
+    applyTheme(s.theme||'dark');
+  } else {
+    applyFont('Spectral');
+    applyTheme('dark');
+  }
+}
+
+/* ===== Auto-save Interval ===== */
+setInterval(()=>{
+  if(!isPaused) saveSession();
+},5000);
+
+/* ===== Restore on Load ===== */
+restoreSettings();
+restoreSession();
+startTimer();
 </script>
 </body>
 </html>
